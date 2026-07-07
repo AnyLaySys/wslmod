@@ -5,17 +5,17 @@
 ```bash
 ./vkmark.sh all
 ```
-使用已有构建测试：
+使用已有构建测试:
 ```bash
 ./vkmark.sh test
 ./vkmark.sh run vulkaninfo --summary
 ```
 `test` 会通过 XCB 和 immediate present mode 运行完整默认 `vkmark` 测试.  
-在当前 shell 启用 DZN：
+在当前 shell 启用 DZN:
 ```bash
 eval "$(./vkmark.sh env)"
 ```
-手动构建流程：
+手动构建流程:
 ```bash
 cd mesa
 meson setup build-dzn --wipe -Dvulkan-drivers=microsoft-experimental -Dgallium-drivers= -Dplatforms=x11,wayland -Dllvm=enabled -Dshared-llvm=enabled -Dmicrosoft-clc=enabled -Dspirv-to-dxil=true
@@ -64,4 +64,27 @@ WARNING: dzn is not a conformant Vulkan implementation, testing use only.
 =======================================================
                                    vkmark Score: 944
 =======================================================
+```
+### GNOME RDP
+让 WSL 通过 GNOME 官方 Remote Desktop 暴露完整 GNOME 桌面,Windows 使用远程桌面连接.
+
+脚本走完整 `gnome-session@ubuntu.target` + `gnome-remote-desktop-headless.service`,只把 GNOME Shell override 成 headless/no-x11 启动,不经过 GDM 登录界面,避免 WSLg 的 `/tmp/.X11-unix` 权限导致黑屏. 默认监听 `127.0.0.1:3390`,`open` 会自动写入 Windows 凭据、信任证书并用 smart sizing RDP 文件打开远程桌面.
+```bash
+./gnome-rdp.sh all
+./gnome-rdp.sh open
+```
+默认 `ACCEL=auto`,检测到 WSL D3D12/Mesa 后会给 GNOME session 和 DBus 应用环境注入 D3D12/OpenGL 与 DZN/Vulkan 变量. 这能让支持的应用吃到 GPU,但 `gnome-remote-desktop-headless.service` 本体会显式取消这些变量以避免崩溃;GNOME Shell headless 合成层仍可能显示 `surfaceless renderer without GPU`.
+
+只配置不启动:
+```bash
+./gnome-rdp.sh cfg
+```
+
+重新生成 RDP 凭据密码:
+```bash
+./gnome-rdp.sh password
+```
+只查看服务状态:
+```bash
+./gnome-rdp.sh status
 ```
